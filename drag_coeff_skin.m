@@ -1,4 +1,4 @@
-function out = drag_coeff(Re_crit, rho_air, mu, v, L_char, S_wet, S_ref)
+function out = drag_coeff_skin(Re_crit, rho_air, mu, v, L_char, S_wet, S_ref)
 x_crit = Re_crit * mu  / (rho_air * v);
 C_f_lam = 1.328 / sqrt(Re_crit);
 C_f_lam_to_turb = 0.455 / (log(Re_crit)^2.58);
