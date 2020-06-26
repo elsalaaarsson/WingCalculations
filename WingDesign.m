@@ -32,6 +32,7 @@ C_07R = 1;      % Coefficient of drag of 0.7 length of the propeller -- EDIT!!
 
 % Lift coefficients
 C_L_max = 0.9 * C_l_max * cos(ang_quarter_chord);  % Max lift coef. for the whole VTOL
+C_L = W / (0.5 * rho_air * v_cruise^2 * S);
 
 % List of components
 % - Wing, inner (untapered)
@@ -43,19 +44,18 @@ C_L_max = 0.9 * C_l_max * cos(ang_quarter_chord);  % Max lift coef. for the whol
 % - VTOL propellers
 % - VTOL motors
 % - Booms
+% - Landing gear
 
 % Skin friction coefficients
-% 
+
 
 
 % Form factors
 
 
-% Drag properties for all components
-f = length_fuselage / dia_fuselage;  % Ratio of characteristic lengths
 
 % Zero-lift drag coefficients per component
-C_D_0_fuselage = drag_coefficient_0(C_f_fuselage, FF_fuselage, S_wet_fuselage, S_ref);
+    % C_D_0_fuselage = drag_coefficient_0(C_f_fuselage, FF_fuselage, S_wet_fuselage, S_ref);
 
 % Wing loading, 2 methods:
 % Stall speed constraint
@@ -67,11 +67,14 @@ K = 1 / (pi() * AR * e);  % Aerodynamic factor
 C_D_induced = K * (2 * W / (v_cruise^2 * rho_air * S))^2;  % Induced drag coefficient
 C_D_0_prop = 0.1 * N * D * C_07R / S;  % Drag coefficient from VTOL propellers
 
-% Zero-lift drag coefficient
-C_D_0 = C_D_0_fuselage + C_D_0_prop;  % Zero-lift parasite drag coefficient, ignoring interference factor
+% Zero-lift (parasite) drag coefficient, independent of C_l
+    % C_D_0 = C_D_0_fuselage + C_D_0_prop;  % Zero-lift parasite drag coefficient, ignoring interference factor
 
-% Drag difference from zero-lift (deployment of flaps etc)
-% Depends on the point of flight
+% Parasite drag depending on C_L
+    % C_parasite = k * C_L ^2;
+
+% Induced drag
+C_induced = C_L^2 / (pi() * AR * e);
 
 % Total drag
-C_D = C_D_0 + C_L^2 / (pi() * AR * e);
+    % C_D = C_D_0 + C_induced;
