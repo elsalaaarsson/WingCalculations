@@ -1,6 +1,9 @@
 clear
 clc
 
+% The wing is designed with 2˚ angle of incidence which equals approx. a
+% C_L of 0.18. This means that C_D at that angle is approx. 0.008.
+
 % General constants
 g = 9.81;       % Gravitational acceleration [m/s2]
 rho_air = 1.28; % Density of air at 15˚C [kg/m3]
@@ -23,15 +26,17 @@ Ma = v_cruise / sqrt(gamma * R * T);  % Mach number at cruise speed
 S = 0.55;       % Wing area [m2]
 AR = 9;         % Aspect ratio
 lambda = 0.72;  % Taper ratio (inner chord / tip chord)
-sweep_angle = 39.3 * Ma^2;  % Sweep angle estimate (HBG) [deg]
+sweep_angle = 39.3 * Ma^2;  % Sweep angle estimate (HBG) [deg] - almost zero
+lambda_opt = 0.45 * exp(-0.036 * sweep_angle);  % Optimum taper ratio (HBG), ignored because of aesthetics and other sources
 % - calculated values - 
 b = sqrt(S * AR);  % Wing span [m]
 b_with_winglets = b / 1.05;  % Wing span with winglets, as they increase efficiency by 4-7%, 5% was chosen as estimation [m]
 c = S / b;  % Mean chord length ("width" of the wing) [m]
 c_r = (2 / (1 + lambda)) * c;  % Root chord [m]
 c_t	= c_r * lambda;  % Tip chord [m]
-percentage_thickness = 0.15;  % Thickness of the wing relative to chord length [frac]
-h = percentage_thickness * c;  % Thickness [m]
+rel_thickness = -0.0439 * atan(3.3450 * Ma - 3.0231) + 0.0986;  % Thickness of the wing relative to chord length [frac]
+rel_thickness_actual = 0.15;  % Close to the calculated value above and a standard airfoil (NACA0015)
+h = rel_thickness * c;  % Thickness [m]
 x_t = 0.3 * c;  % Position of max thickness from the wing front [m]
 length_fuselage = 0.435;  % Fuselage length [m]
 dia_fuselage = 0.15;  % Fuselage diameter [m]
@@ -46,8 +51,8 @@ n_vert_tail = 4;
 % - Tail
 c_hor_tail = 0.1;  % Chord length of horizontal tail [m]
 c_vert_tail = 0.0754;  % Mean chord length of vertical tail from CAD [m]
-h_hor_tail = percentage_thickness * c_hor_tail;
-h_vert_tail = percentage_thickness * c_vert_tail;
+h_hor_tail = rel_thickness * c_hor_tail;
+h_vert_tail = rel_thickness * c_vert_tail;
 ang_hor_tail = 0;
 ang_vert_tail = 15 * pi() / 180;  % Vertical tail angle approx. from CAD [rad]
 % - VTOL propellers
@@ -80,6 +85,9 @@ C_L = W / (0.5 * rho_air * v_cruise^2 * S);
 
 %% Aerodynamic calculations
 
+Re_root = rho_air * v_cruise * c_r / mu_air;  % Reynold's number over the rectangular part of the wing
+Re_mean = rho_air * v_cruise * c / mu_air;  % Reynold's number using mean aerodyn. chord
+Re_tip = rho_air * v_cruise * c_t / mu_air;  % Reynold's number at the wing tip
 
 % Performance calculations 
     % thrust_weight_ratio = 550 * eff_tail_prop / v_cruise * 1 / power_loading;  % [N/N]
@@ -100,7 +108,7 @@ S_ref = S_ref_wing +  S_ref_fuselage + S_ref_VTOL_motors + + S_ref_prop ...
 
 % Surface areas (S_wet): The surface area in contact with the air for each
 % component
-S_wet_wing = 2 * S_ref_wing * (1 + 0.25 * percentage_thickness);  % Approx. from German paper [m2]
+S_wet_wing = 2 * S_ref_wing * (1 + 0.25 * rel_thickness);  % Approx. from German paper [m2]
 S_wet_fuselage = pi() * dia_fuselage * length_fuselage ...
     * (1 - 2/(length_fuselage / dia_fuselage))^(2/3) ...
     * (1 + 1/(length_fuselage / dia_fuselage)^2);  % Approx. from german paper [m2]
@@ -130,6 +138,7 @@ FF_landing_gear = 5;  % Guesstimate!
 
 % Zero-lift drag coefficients per component
 C_D_0_wing = drag_coeff_0(C_f_wing, FF_wing, S_wet_wing, S_ref_wing);
+    % C_D_0_wing = 0.008;  % From information on NACA0015 versus angle of incidence at Re = 5e5. Probably idealised estimate!
 C_D_0_fuselage = drag_coeff_0(C_f_fuselage, FF_fuselage, S_wet_fuselage, S_ref_fuselage);
 C_D_0_motor = 0.4;  % Typical value for cylinder at Re = 90000 (large differences from different sources!)
 C_D_0_prop = drag_coeff_0(C_f_prop, FF_prop, S_wet_prop, S_ref_prop);
@@ -167,3 +176,9 @@ D = 1/2 * rho_air * v_cruise^2 * C_D * S_ref;
 %% Performance calculations
 
 wing_loading = m / S;
+
+T_cruise = D;  % The thrust required for stable cruise is equal to the drag [N]
+P_cruise = T_cruise * v_cruise;  % The power required at cruise is equal to the thrust * the velocity [W]
+
+k_takeoff = 1.2;  % Scaling factor for the amount of thrust necessary to lift the UAV, relative to the weight
+T_takeoff = W * k_takeoff;  % Takeoff thrust [N]
