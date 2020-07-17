@@ -42,6 +42,7 @@ C_l_max = 1.2731;  % Airfoil maximum lift coefficient
 % Numbers
 n_props = 4;          % Number of propellers
 n_vert_tail = 4;
+n_landing_gear = 4;
 
 % - Tail
 c_hor_tail = 0.1;  % Chord length of horizontal tail [m]
@@ -59,7 +60,8 @@ h_VTOL_motor = 0.042;  % Motor height [m]
 % - tail propellers
 eff_tail_prop = 1;  % Efficiency of tail propeller [frac]
 % - Landing gear
-len_landing_gear = 0.3;  % Diameter of landing gear struts [m]
+len_landing_gear = 0.3;  % Length of landing gear struts [m]
+dia_landing_gear = 0.01;  % Diameter of landing gear struts [m]
     
 % Lift coefficients
     % C_L_max = 0.9 * C_l_max * cos(ang_quarter_chord);  % Max lift coef. for the whole VTOL
@@ -98,7 +100,7 @@ S_ref_landing_gear = 0.01 * len_landing_gear;  % 2D area of landing gear vert. b
 S_ref = S_ref_wing +  S_ref_fuselage + S_ref_VTOL_motors + + S_ref_prop ...
     + S_ref_vert_tail + S_ref_hor_tail + S_ref_landing_gear;
 
-% Surface areas (S_wet): The surface area in contact with the air for each
+% Wetted areas (S_wet): The surface area in contact with the air for each
 % component
 S_wet_wing = 2 * S_ref_wing * (1 + 0.25 * percentage_thickness);  % Approx. from German paper [m2]
 S_wet_fuselage = pi() * dia_fuselage * length_fuselage ...
@@ -117,7 +119,7 @@ C_f_VTOL_motors = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, dia_VTOL_m
 C_f_prop = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, dia_prop, S_wet_prop, S_ref_prop);
 C_f_vert_tail = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, c_vert_tail, S_wet_vert_tail, S_ref_vert_tail);
 C_f_hor_tail = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, c_hor_tail, S_wet_hor_tail, S_ref_hor_tail);
-C_f_landing_gear = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, len_landing_gear, S_wet_landing_gear, S_ref_landing_gear);
+C_f_landing_gear = drag_coeff_skin(Re_crit, rho_air, mu_air, v_cruise, dia_landing_gear, S_wet_landing_gear, S_ref_landing_gear);
 
 % Form factors
 FF_wing = (1 + 0.6/x_t * (h/c) + 100 * (h/c)^4) * (1.34 * Ma^0.18 * cos(ang_quarter_chord)^0.28);
@@ -149,8 +151,9 @@ C_D_induced = K * (2 * W / (v_cruise^2 * rho_air * S))^2;  % Induced drag coeffi
 
 % Zero-lift (parasite) drag coefficient, independent of C_l, ignoring
 % interference factor.
-C_D_0 = C_D_0_wing + C_D_0_fuselage + C_D_0_motor + C_D_0_prop ...
-    + C_D_0_vert_tail + C_D_0_hor_tail + C_D_0_landing_gear;  
+C_D_0 = C_D_0_wing + C_D_0_fuselage + n_props * C_D_0_motor + ...
+    n_props * C_D_0_prop + n_vert_tail * C_D_0_vert_tail + C_D_0_hor_tail ...
+    + n_landing_gear * C_D_0_landing_gear;  
 
 % Parasite drag depending on C_L
     % C_parasite = k * C_L ^2;

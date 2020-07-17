@@ -1,5 +1,5 @@
 % Used in WingDesign.m
-function out = drag_coeff_skin(Re_crit, rho_air, mu_air, v, L_char, S_wet, S_ref)
+function out = skin_fric_coeff(Re_crit, rho_air, mu_air, v, L_char, S_wet, S_ref)
 % The L_char is the characteristic length of the component in question, and
 % x_crit is the length, less than L_char, where the flow transitions from
 % laminar to turbulent. 
