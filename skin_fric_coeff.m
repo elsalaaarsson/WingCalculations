@@ -15,7 +15,7 @@ C_f_turb = 0.455 / (log(Re)^2.58);  % Friction coefficient for the turbulent flo
 % S_wet is the wetted area of the component in question, and is the surface
 % area of a component, in contact with the air.
 S_wet_lam = S_wet * x_crit / L_char;  % The wetted area experiencing lam. flow [m2]
-S_wet_turb = S_wet * (1-x_crit) / L_char;  % The wetted area experiencing turb. flow [m2]
+S_wet_turb = S_wet * (1- x_crit / L_char);  % The wetted area experiencing turb. flow [m2]
 
 % Drag for the different sections using the three different C_f
 D_lam = drag_from_skin_fric_coeff(rho_air, v, S_wet_lam, C_f_lam);  % Drag for the laminar part
