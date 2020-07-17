@@ -126,8 +126,8 @@ Re_mean = rho_air * v_cruise * c / mu_air;  % Reynold's number using mean aerody
 Re_tip = rho_air * v_cruise * c_t / mu_air;  % Reynold's number at the wing tip
 
 
-% Reference areas (S_ref): 2D areas from top view relating to each 
-% component
+% Reference areas (S_ref): 2D reference areas relating to each 
+% component. Largest cross-sect. area was chosen.
 S_ref_wing = S - c_r * dia_fuselage;  % Wing ref area [m2]
 S_ref_fuselage = length_fuselage * dia_fuselage;  % Fuselage ref area [m2]
 S_ref_VTOL_motors = pi() * dia_VTOL_motor^2 / 4; % Total for all four [m2]
@@ -187,7 +187,7 @@ C_D_0 = C_D_0_wing + C_D_0_fuselage + n_vert_tail * C_D_0_vert_tail ...
     % C_parasite = K * C_L ^2;  % K is not the same as k!
 
 e = 0.7;  % Oswald efficiency approximation for "extended slats, flaps and landing gear". Deemed equivalent of having propellers deployed.
-e_eq = 1.78 * (1 - 0.045*AR^0.68) - 0.64;  % Idealised equation for Oswald efficiency factor
+e_eq = 1.78 * (1 - 0.045*AR^0.68) - 0.64;  % Idealised equation for Oswald efficiency factor (1)
 
 % Induced drag
 k = pi() * AR * e;  % Constant
