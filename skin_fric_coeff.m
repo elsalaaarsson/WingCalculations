@@ -1,5 +1,5 @@
 % Used in WingDesign.m
-function out = skin_fric_coeff(Re_crit, rho_air, mu_air, v, L_char, S_wet, S_ref)
+function out = skin_fric_coeff(Re_crit, rho_air, mu_air, v, L_char, S_wet)
 % The L_char is the characteristic length of the component in question, and
 % x_crit is the length, less than L_char, where the flow transitions from
 % laminar to turbulent. 
@@ -26,7 +26,7 @@ D_turb = drag_from_skin_fric_coeff(rho_air, v, S_wet_turb, C_f_turb);  % Drag if
 D = D_lam - D_lam_to_turb + D_turb;
 
 % Drag coefficient for the component
-C_D = D / (1/2 * rho_air * v^2 * S_ref);
+C_f = D / (1/2 * rho_air * v^2 * S_wet);
 % S_ref is the 2D reference area for the component.
-out = C_D;
+out = C_f;
 end

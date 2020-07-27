@@ -14,7 +14,7 @@ Re_crit = 2e5;  % Critical Reynold's number for turbulence transition
 % Design generic
 m = 6;          % Mass of the drone [kg]
 v_cruise = 30;  % Cruise speed [m/s]
-v_stall = 5;   % Stall speed  - arbitrarily chosen! [m/s]
+v_stall = 4;   % Stall speed  - arbitrarily chosen! [m/s]
 % - calculated values -
 W = m * g;  % Weight of the drone [N]
 gamma = 1.4;  % Ratio of specific heats (physical property of air)
@@ -53,7 +53,6 @@ n_landing_gear = 4;
 
 % - VTOL propellers
 dia_prop = 0.4572;  % Diameter of propeller span [m]
-    %C_07R = 1;      % Coefficient of drag of 0.7 length of the propeller -- EDIT!!
 % - VTOL motors
 dia_VTOL_motor = 0.0425;  % Motor diameter [m]
 h_VTOL_motor = 0.042;  % Motor height [m]
@@ -66,6 +65,10 @@ dia_landing_gear = 0.01;  % Diameter of landing gear struts [m]
 % Lift coefficients
 C_L_max = 0.9 * C_l_max * cos(ang_quarter_chord);  % Max lift coef. for the whole VTOL
 C_L = W / (0.5 * rho_air * v_cruise^2 * S);
+
+% Preliminary wing loading for wing sizing (1)
+WS = 0.5 * rho_air * v_stall^2 * C_L_max;
+
 
 % List of components
 % + Wing, inner (untapered)
@@ -161,10 +164,10 @@ FF_hor_tail = (1 + 0.6/x_t_hor_tail * (h_hor_tail/c_hor_tail) + 100 * (h_hor_tai
 
 
 % Skin friction coefficients
-C_f_wing = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c, S_wet_wing, S_ref_wing);
-C_f_fuselage = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, length_fuselage, S_wet_fuselage, S_ref_fuselage);
-C_f_vert_tail = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c_vert_tail, S_wet_vert_tail, S_ref_vert_tail);
-C_f_hor_tail = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c_hor_tail, S_wet_hor_tail, S_ref_hor_tail);
+C_f_wing = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c, S_wet_wing);
+C_f_fuselage = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, length_fuselage, S_wet_fuselage);
+C_f_vert_tail = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c_vert_tail, S_wet_vert_tail);
+C_f_hor_tail = skin_fric_coeff(Re_crit, rho_air, mu_air, v_cruise, c_hor_tail, S_wet_hor_tail);
 
 
 % Zero-lift drag coefficients per component
