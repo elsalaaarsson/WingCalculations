@@ -1,6 +1,7 @@
 clear
 clc
 
+% NACA0015 aerofoil.
 % The wing is designed with 2˚ angle of incidence which equals approx. a
 % C_L of 0.18. This means that C_D at that angle is approx. 0.008.
 
@@ -209,7 +210,7 @@ wing_loading = m / S;
 T_cruise = D;  % The thrust required for stable cruise is equal to the drag [N]
 P_cruise = T_cruise * v_cruise;  % The power required at cruise is equal to the thrust * the velocity [W]
 
-k_takeoff = 1.2;  % Scaling factor for the amount of thrust necessary to lift the UAV, relative to the weight
+k_takeoff = 1.2;  % Scaling factor for the amount of thrust necessary to lift the UAV, relative to the weight (1)
 T_takeoff = W * k_takeoff;  % Takeoff thrust [N]
 
 v_mindrag = (W / (1/2 * rho_air * S))^0.5 * (k / C_D_0)^0.25;  % Velocity of minimum drag from Strathclyde Aero Design notes [m/s]
