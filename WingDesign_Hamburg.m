@@ -9,7 +9,10 @@ clc
 g = 9.81;       % Gravitational acceleration [m/s2]
 rho_air = 1.28; % Density of air at 15˚C [kg/m3]
 mu_air = 1.81e-5;  % Viscosity of air at 15°C [kg/(ms)]
-Re_crit = 2e5;  % Critical Reynold's number for turbulence transition 
+Re_crit = 2e5;  % Critical Reynold's number for turbulence transition (2)
+gamma = 1.4;  % Ratio of specific heats (physical property of air)
+R = 287;  % Specific gas constant for air [J/(kg K)]
+temp = 273 + 15; % Absolute temperature at 15°C [K]
 
 
 % Design generic
@@ -18,57 +21,90 @@ v_cruise = 30;  % Cruise speed [m/s]
 v_stall = 4;   % Stall speed  - arbitrarily chosen! [m/s]
 % - calculated values -
 W = m * g;  % Weight of the drone [N]
-gamma = 1.4;  % Ratio of specific heats (physical property of air)
-R = 287;  % Specific gas constant for air [J/(kg K)]
-temp = 273 + 15; % Absolute temperature at 15°C [K]
 Ma = v_cruise / sqrt(gamma * R * temp);  % Mach number at cruise speed
 
 
 % Body and wings
-S = 0.55;       % Wing area [m2]
-AR = 9;         % Aspect ratio
-lambda = 0.72;  % Taper ratio (inner chord / tip chord)
-sweep_angle = 39.3 * Ma^2;  % Sweep angle estimate (HBG) [deg] - almost zero
+S = 0.55;       % Wing area, based on m and WS [m2]
+AR = 9;         % Aspect ratio (1)
+sweep_angle = 39.3 * Ma^2;  % Sweep angle estimate (HBG) [deg] - almost zero (5)
+lambda = 0.72;  % Taper ratio (inner chord / tip chord) (1)
 lambda_opt = 0.45 * exp(-0.036 * sweep_angle);  % Optimum taper ratio (HBG), ignored because of aesthetics and other sources
 % - calculated values - 
 b = sqrt(S * AR);  % Wing span [m]
 b_with_winglets = b / 1.05;  % Wing span with winglets, as they increase efficiency by 4-7%, 5% was chosen as estimation [m]
-c = S / b;  % Mean chord length ("width" of the wing) [m]
+c = S / b;  % Mean chord length (front to back length of the wing) [m]
 c_r = (2 / (1 + lambda)) * c;  % Root chord [m]
 c_t	= c_r * lambda;  % Tip chord [m]
-rel_thickness = -0.0439 * atan(3.3450 * Ma - 3.0231) + 0.0986;  % Thickness of the wing relative to chord length [frac]
-rel_thickness_actual = 0.15;  % Close to the calculated value above and a standard airfoil (NACA0015)
+rel_thickness_opt = -0.0439 * atan(3.3450 * Ma - 3.0231) + 0.0986;  % Thickness of the wing relative to chord length [frac]
+rel_thickness = 0.15;  % Close to the calculated value above and a standard airfoil (NACA0015)
 h = rel_thickness * c;  % Thickness [m]
 x_t = 0.3 * c;  % Position of max thickness from the wing front [m]
-length_fuselage = 0.435;  % Fuselage length [m]
-dia_fuselage = 0.15;  % Fuselage diameter [m]
+length_fuselage = 0.435;  % Fuselage length, from CAD [m]
+dia_fuselage = 0.15;  % Fuselage diameter, from CAD [m]
 ang_quarter_chord = atan((c_r - c_t) / 4 / ((b - dia_fuselage) / 2));  % Quarter chord sweep angle [rad]
 C_l_max = 1.2731;  % Airfoil maximum lift coefficient
 
 % Components
 % Numbers
-n_props = 4;          % Number of propellers
-n_vert_tail = 4;
-n_landing_gear = 4;
-
+n_props = 4;            % Number of propellers
+n_vert_tail = 4;        % Number of vertical tail planes
+n_landing_gear = 4;     % Number of landing gears
 
 % - VTOL propellers
-dia_prop = 0.4572;  % Diameter of propeller span [m]
+dia_prop = 0.4572;          % Diameter of propeller span [m]
 % - VTOL motors
-dia_VTOL_motor = 0.0425;  % Motor diameter [m]
-h_VTOL_motor = 0.042;  % Motor height [m]
+dia_VTOL_motor = 0.0425;    % Motor diameter [m]
+h_VTOL_motor = 0.042;       % Motor height [m]
 % - tail propellers
-eff_tail_prop = 1;  % Efficiency of tail propeller [frac]
+eff_tail_prop = 1;          % Efficiency of tail propeller [frac]
 % - Landing gear
-len_landing_gear = 0.3;  % Length of landing gear struts [m]
-dia_landing_gear = 0.01;  % Diameter of landing gear struts [m]
+len_landing_gear = 0.3;     % Length of landing gear struts [m]
+dia_landing_gear = 0.01;    % Diameter of landing gear struts [m]
 
 % Lift coefficients
 C_L_max = 0.9 * C_l_max * cos(ang_quarter_chord);  % Max lift coef. for the whole VTOL
-C_L = W / (0.5 * rho_air * v_cruise^2 * S);
+C_L = W / (0.5 * rho_air * v_cruise^2 * S);  % Lift coefficient required at cruise flight
 
 % Preliminary wing loading for wing sizing (1)
 WS = 0.5 * rho_air * v_stall^2 * C_L_max;
+
+
+%% Tail sizing
+% Source: https://www.fzt.haw-hamburg.de/pers/Scholz/HOOU/Aircraft_Design_in_a_Nutshell.pdf
+
+vol_coeff_hor_tail = 0.8;  % Conventional volume coefficient of horizontal tail 
+vol_coeff_vert_tail = 0.07;  % Conventional volume coefficient of vertical tail 
+hor_lev_arm = 0.660;  % Lever arm of the horizontal tailplane from CAD estimate [m]
+vert_lev_arm = hor_lev_arm;
+b_hor_tail = 0.940;  % Tail span
+
+
+S_H = vol_coeff_hor_tail * S * c / hor_lev_arm;  % Horizontal tail area
+
+S_V = vol_coeff_vert_tail * S * b / vert_lev_arm;  % Vertical tail area
+
+c_hor_tail = S_H / b_hor_tail;  % Chord length of the horizontal tailplane
+
+c_vert_tail = c_hor_tail;  % Vertical tail chord
+b_vert_tail = S_V / c_vert_tail;  % Vertical tail total span
+
+l_vert_tail = b_vert_tail / n_vert_tail;  % Length of each vertical tail
+
+% - Tail
+x_t_hor_tail = 0.3 * c_hor_tail;  % Position of max thickness from the wing front [m]
+x_t_vert_tail = 0.3 * c_vert_tail;  % Position of max thickness from the wing front [m]
+h_hor_tail = rel_thickness * c_hor_tail;  % Horizontal tail thickness [m]
+h_vert_tail = rel_thickness * c_vert_tail;  % Vertical tail thickness [m]
+ang_hor_tail = 0;  % No sweep angle
+ang_vert_tail = acos(180/190);  % Vertical tail sweep angle approx. from CAD [rad]
+
+
+%% Aerodynamic calculations
+
+Re_root = rho_air * v_cruise * c_r / mu_air;  % Reynold's number over the rectangular part of the wing
+Re_mean = rho_air * v_cruise * c / mu_air;  % Reynold's number using mean aerodyn. chord
+Re_tip = rho_air * v_cruise * c_t / mu_air;  % Reynold's number at the wing tip
 
 
 % List of components
@@ -84,54 +120,8 @@ WS = 0.5 * rho_air * v_stall^2 * C_L_max;
 % + Landing gear
 
 
-%% Tail sizing
-% Source: https://www.fzt.haw-hamburg.de/pers/Scholz/HOOU/Aircraft_Design_in_a_Nutshell.pdf
-
-vol_coeff_hor_tail = 0.8;  % Conventional volume coefficient of horizontal tail 
-vol_coeff_vert_tail = 0.07;  % Conventional volume coefficient of vertical tail 
-hor_lev_arm = 0.660;  % Lever arm of the horizontal tailplane from CAD estimate [m]
-vert_lev_arm = hor_lev_arm;
-b_hor_tail = 0.940;  % Tail span
-
-
-S_H = vol_coeff_hor_tail * S * c / hor_lev_arm;  % Horizontal tail sizing
-% C_H is the conventional volume coefficient of horizontal tail 
-% S is the wing area
-% c is the mean aerodynamic chord
-% l_H is the lever arm of the horizontal tailplane - distance between
-% aerodynamic centres of the wing and horizontal tailplane
-
-S_V = vol_coeff_vert_tail * S * b / vert_lev_arm;
-% C_V is the conventional volume coefficient of vertical tail 
-% b is the wing span
-% l_V is the distance between aerodynamic centres of the wing and 
-% horizontal tailplane
-
-c_hor_tail = S_H / b_hor_tail;  % Chord length of the horizontal tailplane
-
-c_vert_tail = c_hor_tail;
-b_vert_tail = S_V / c_vert_tail;
-
-l_vert_tail = b_vert_tail / 4;
-
-% - Tail
-x_t_hor_tail = 0.3 * c_hor_tail;  % Position of max thickness from the wing front [m]
-x_t_vert_tail = 0.3 * c_vert_tail;  % Position of max thickness from the wing front [m]
-h_hor_tail = rel_thickness * c_hor_tail;
-h_vert_tail = rel_thickness * c_vert_tail;
-ang_hor_tail = 0;  % No sweep angle
-ang_vert_tail = acos(180/190);  % Vertical tail sweep angle approx. from CAD [rad]
-
-
-%% Aerodynamic calculations
-
-Re_root = rho_air * v_cruise * c_r / mu_air;  % Reynold's number over the rectangular part of the wing
-Re_mean = rho_air * v_cruise * c / mu_air;  % Reynold's number using mean aerodyn. chord
-Re_tip = rho_air * v_cruise * c_t / mu_air;  % Reynold's number at the wing tip
-
-
 % Reference areas (S_ref): 2D reference areas relating to each 
-% component. Largest cross-sect. area was chosen.
+% component. Largest cross-sect. area of each component was used.
 S_ref_wing = S - c_r * dia_fuselage;  % Wing ref area [m2]
 S_ref_fuselage = length_fuselage * dia_fuselage;  % Fuselage ref area [m2]
 S_ref_VTOL_motors = pi() * dia_VTOL_motor^2 / 4; % Total for all four [m2]
@@ -146,10 +136,10 @@ S_ref = S_ref_wing +  S_ref_fuselage + n_props * (S_ref_VTOL_motors + S_ref_prop
 
 % Wetted areas (S_wet): The surface area in contact with the air for each
 % component
-S_wet_wing = 2 * S_ref_wing * (1 + 0.25 * rel_thickness);  % Approx. from German paper [m2]
+S_wet_wing = 2 * S_ref_wing * (1 + 0.25 * rel_thickness);  % Approx. from (5) [m2]
 S_wet_fuselage = pi() * dia_fuselage * length_fuselage ...
     * (1 - 2/(length_fuselage / dia_fuselage))^(2/3) ...
-    * (1 + 1/(length_fuselage / dia_fuselage)^2);  % Approx. from german paper [m2]
+    * (1 + 1/(length_fuselage / dia_fuselage)^2);  % Approx. from (5) [m2]
 S_wet_VTOL_motors = (pi() * dia_VTOL_motor^2 / 4 + pi() * dia_VTOL_motor * h_VTOL_motor);  % Approx. cylinder [m2]
 S_wet_prop = 0.010817;  % Propeller surface area according to CAD [m2]
 S_wet_vert_tail = 0.058927;  % Vertical tail wing surface area according to CAD (only one) [m2]
@@ -190,7 +180,7 @@ C_D_0 = C_D_0_wing + C_D_0_fuselage + n_vert_tail * C_D_0_vert_tail ...
 % Parasite drag depending on C_L
     % C_parasite = K * C_L ^2;  % K is not the same as k!
 
-e = 0.7;  % Oswald efficiency approximation for "extended slats, flaps and landing gear". Deemed equivalent of having propellers deployed.
+e = 0.7;  % Oswald efficiency approximation for "extended slats, flaps and landing gear" (1). Deemed equivalent of having propellers deployed.
 e_eq = 1.78 * (1 - 0.045*AR^0.68) - 0.64;  % Idealised equation for Oswald efficiency factor (1)
 
 % Induced drag
