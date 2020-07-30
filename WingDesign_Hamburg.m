@@ -125,7 +125,7 @@ Re_tip = rho_air * v_cruise * c_t / mu_air;  % Reynold's number at the wing tip
 S_ref_wing = S - c_r * dia_fuselage;  % Wing ref area [m2]
 S_ref_fuselage = length_fuselage * dia_fuselage;  % Fuselage ref area [m2]
 S_ref_VTOL_motors = pi() * dia_VTOL_motor^2 / 4; % Total for all four [m2]
-S_ref_prop = 0.43 * 0.02;  % Approximate 2D area from the top of the VTOL props [m2]
+S_ref_prop = 0.43 * 0.02;  % Approximate 2D area from the top of the VTOL props (1) [m2]
 S_ref_vert_tail = c_vert_tail * b_vert_tail;  % 2D ref area of vert tail from CAD [m2]
 S_ref_hor_tail = c_hor_tail * b_hor_tail;  % 2D area of horizontal tail wing from CAD [m2]
 S_ref_landing_gear = dia_landing_gear * len_landing_gear;  % 2D area of landing gear vert. bars from CAD, using the length-wise cross-section [m2]
@@ -147,7 +147,7 @@ S_wet_hor_tail = 0.341357;  % Horizontal tail wing surface area according to CAD
 S_wet_landing_gear = 9.5033e-3;  % Vertical bar of landing gear surf. area from CAD [m2]
 
 
-% Form factors
+% Form factors (1)
 FF_wing = (1 + 0.6/x_t * (h/c) + 100 * (h/c)^4) * (1.34 * Ma^0.18 * cos(ang_quarter_chord)^0.28);
 FF_fuselage = 1 + 60 / (length_fuselage / dia_fuselage)^3 + (length_fuselage / dia_fuselage) / 400;
 FF_vert_tail = (1 + 0.6/x_t_vert_tail * (h_vert_tail/c_vert_tail) + 100 * (h_vert_tail/c_vert_tail)^4) * (1.34 * Ma^0.18 * cos(ang_vert_tail)^0.28);
